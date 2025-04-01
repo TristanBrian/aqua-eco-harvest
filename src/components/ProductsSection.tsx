@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 const products = [
   {
@@ -32,10 +33,29 @@ const products = [
 ];
 
 const ProductsSection = () => {
+  const container = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+  
+  const item = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.5 }
+    }
+  };
+  
   return (
-    <section className="py-16 bg-gradient-to-b from-white to-aqua-50">
+    <section className="py-20 bg-gradient-to-b from-white to-aqua-50">
       <div className="container mx-auto px-4">
-        <div className="max-w-3xl mx-auto text-center mb-12">
+        <div className="max-w-3xl mx-auto text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-aqua-950">Our Products</h2>
           <div className="w-24 h-1 bg-primary mx-auto mb-6"></div>
           <p className="text-lg text-slate-700">
@@ -43,31 +63,39 @@ const ProductsSection = () => {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <motion.div 
+          className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+          variants={container}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+        >
           {products.map((product) => (
-            <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-              <div className="h-48 overflow-hidden">
-                <img 
-                  src={product.image} 
-                  alt={product.name}
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                />
-              </div>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-2 text-aqua-900">{product.name}</h3>
-                <p className="text-slate-600 mb-4 text-sm">{product.description}</p>
-                <Button asChild variant="link" className="p-0 h-auto font-medium text-primary flex items-center">
-                  <Link to={`/products/${product.id}`}>
-                    Learn more <ArrowRight className="ml-1 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+            <motion.div key={product.id} variants={item}>
+              <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full border-0 shadow-md rounded-xl bg-white">
+                <div className="h-48 overflow-hidden">
+                  <img 
+                    src={product.image} 
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                  />
+                </div>
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-semibold mb-2 text-aqua-900">{product.name}</h3>
+                  <p className="text-slate-600 mb-4 text-sm line-clamp-2">{product.description}</p>
+                  <Button asChild variant="ghost" className="p-0 h-auto font-medium text-primary flex items-center hover:bg-transparent">
+                    <Link to={`/products/${product.id}`}>
+                      Learn more <ArrowRight className="ml-1 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
         
         <div className="mt-12 text-center">
-          <Button asChild size="lg" className="rounded-full px-8">
+          <Button asChild size="lg" className="rounded-full px-8 shadow-md">
             <Link to="/products">View All Products</Link>
           </Button>
         </div>

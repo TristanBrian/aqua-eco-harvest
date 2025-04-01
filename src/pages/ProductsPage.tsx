@@ -8,6 +8,7 @@ import { Filter, ArrowUpRight, Info, Star, Truck, ShoppingCart } from "lucide-re
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import ProductCard from "@/components/ProductCard";
 
 const products = [
   {
@@ -135,7 +136,7 @@ const ProductsPage = () => {
           </div>
           
           <div className="flex flex-col lg:flex-row lg:items-start gap-8 mb-8">
-            <div className="lg:w-1/4 bg-white p-6 rounded-lg shadow-sm">
+            <div className="lg:w-1/4 bg-white p-6 rounded-xl shadow-sm">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
                 <Filter className="h-5 w-5 mr-2 text-primary" />
                 Filter Products
@@ -199,21 +200,8 @@ const ProductsPage = () => {
                 </div>
               </div>
               
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold mb-4">Sort By</h3>
-                <select 
-                  className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value)}
-                >
-                  <option value="featured">Featured</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                </select>
-              </div>
-              
-              <div className="mt-8 bg-aqua-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-2 flex items-center text-aqua-900">
+              <div className="mt-8 bg-aqua-50/70 p-5 rounded-xl">
+                <h3 className="text-lg font-semibold mb-3 flex items-center text-aqua-900">
                   <Info className="h-5 w-5 mr-2 text-primary" />
                   Why Choose Our Fish?
                 </h3>
@@ -274,7 +262,7 @@ const ProductsPage = () => {
             </div>
           </div>
           
-          <div className="max-w-4xl mx-auto mt-16 bg-aqua-50 rounded-xl p-8">
+          <div className="max-w-4xl mx-auto mt-16 bg-aqua-50/80 backdrop-blur-sm rounded-xl p-8 shadow-sm">
             <h2 className="text-2xl font-semibold mb-4 text-aqua-900">Bulk Orders & Special Requests</h2>
             <p className="text-slate-700 mb-6">
               Looking for large quantities or have special requirements? We offer competitive pricing for bulk orders and can accommodate custom requests.
@@ -295,79 +283,6 @@ const ProductsPage = () => {
       
       <Footer />
     </div>
-  );
-};
-
-interface ProductCardProps {
-  product: {
-    id: number;
-    name: string;
-    category: string;
-    image: string;
-    description: string;
-    features: string[];
-    price: string;
-  };
-  onAddToCart: (productName: string) => void;
-}
-
-const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
-  return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group h-full flex flex-col">
-      <div className="h-56 overflow-hidden relative">
-        <img 
-          src={product.image} 
-          alt={product.name} 
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-        />
-        <div className="absolute top-3 right-3">
-          <Badge className="bg-white text-slate-700">
-            {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
-          </Badge>
-        </div>
-      </div>
-      <CardContent className="p-6 flex flex-col flex-grow">
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-xl font-semibold text-aqua-900">{product.name}</h3>
-          <div className="flex items-center">
-            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-            <Star className="h-4 w-4 text-yellow-500" />
-          </div>
-        </div>
-        <p className="text-slate-600 mb-4 text-sm">{product.description}</p>
-        
-        <div className="mb-4 flex-grow">
-          <h4 className="text-sm font-medium text-slate-500 mb-2">Features:</h4>
-          <ul className="grid grid-cols-2 gap-x-2 gap-y-1">
-            {product.features.map((feature, idx) => (
-              <li key={idx} className="text-xs text-slate-600 flex items-center">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary mr-1.5"></div>
-                {feature}
-              </li>
-            ))}
-          </ul>
-        </div>
-        
-        <div className="flex justify-between items-center pt-3 border-t border-slate-100">
-          <span className="font-bold text-primary">{product.price}</span>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-white bg-green-500 px-2 py-1 rounded">In Stock</span>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="flex items-center gap-1"
-              onClick={() => onAddToCart(product.name)}
-            >
-              <ShoppingCart className="h-3 w-3" />
-              Add
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   );
 };
 
