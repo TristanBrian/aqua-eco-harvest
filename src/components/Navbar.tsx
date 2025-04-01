@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, User, LogOut, ShoppingCart } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, X, User, LogOut, ShoppingCart, Settings } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +18,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { isLoggedIn, user, logout, showLoginModal, LoginModal } = useAuth();
+  const navigate = useNavigate();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -42,7 +43,16 @@ const Navbar = () => {
     { name: 'Contact', path: '/contact' },
   ];
 
-  const adminLink = { name: 'Admin', path: '/admin' };
+  const adminLinks = [
+    { name: 'Dashboard', path: '/admin' },
+    { name: 'HR', path: '/admin/hr' },
+    { name: 'Production', path: '/admin/production' },
+  ];
+
+  const goToAdminServices = () => {
+    navigate('/admin/hr');
+    setIsMenuOpen(false);
+  };
 
   return (
     <nav
@@ -74,19 +84,36 @@ const Navbar = () => {
               Marketplace
             </Link>
             
-            {isLoggedIn && (
-              <Link 
-                to={adminLink.path}
-                className="text-foreground hover:text-primary font-medium transition-colors"
-              >
-                {adminLink.name}
-              </Link>
+            {isLoggedIn && user?.role === 'admin' && (
+              <div className="relative group">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="flex items-center gap-1 text-foreground hover:text-primary"
+                >
+                  <Settings size={18} className="mr-1" />
+                  Admin
+                </Button>
+                <div className="absolute left-0 mt-1 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="py-1" role="menu" aria-orientation="vertical">
+                    {adminLinks.map((link) => (
+                      <Link
+                        key={link.name}
+                        to={link.path}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {link.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
             )}
             
             {isLoggedIn ? (
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">
-                  {user?.name}
+                  {user?.name} {user?.role === 'admin' && '(Admin)'}
                 </span>
                 <Button 
                   variant="ghost" 
@@ -147,20 +174,26 @@ const Navbar = () => {
                 Marketplace
               </Link>
               
-              {isLoggedIn && (
-                <Link 
-                  to={adminLink.path}
-                  className="text-foreground hover:text-primary font-medium transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {adminLink.name}
-                </Link>
+              {isLoggedIn && user?.role === 'admin' && (
+                <div className="space-y-2 pl-4 border-l-2 border-primary-100">
+                  <p className="font-medium text-sm text-primary">Admin Access</p>
+                  {adminLinks.map((link) => (
+                    <Link
+                      key={link.name}
+                      to={link.path}
+                      className="block text-foreground hover:text-primary font-medium transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {link.name}
+                    </Link>
+                  ))}
+                </div>
               )}
               
               {isLoggedIn ? (
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">
-                    Signed in as {user?.name}
+                    Signed in as {user?.name} {user?.role === 'admin' && '(Admin)'}
                   </span>
                   <Button 
                     variant="ghost" 

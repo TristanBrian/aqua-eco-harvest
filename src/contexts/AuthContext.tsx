@@ -44,8 +44,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    // In a real app, this would be an API call to validate credentials
-    if (password === "password") { // Simple mock check
+    // Admin login check
+    if (email === "admin@kamuthanga-farm.com" && password === "adminpassword") {
+      const adminUser: User = {
+        id: "admin1",
+        name: "Admin User",
+        email: email,
+        role: "admin"
+      };
+      
+      setUser(adminUser);
+      setIsLoggedIn(true);
+      setShowModal(false);
+      
+      toast({
+        title: "Admin Login Successful",
+        description: `Welcome back, Admin!`,
+      });
+      
+      return true;
+    }
+    
+    // Regular user login
+    else if (password === "password") { // Simple mock check
       const userData: User = {
         id: "1",
         name: email.split('@')[0],
@@ -66,7 +87,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } else {
       toast({
         title: "Login Failed",
-        description: "Invalid email or password. Hint: password is 'password'",
+        description: "Invalid email or password. Try 'admin@kamuthanga-farm.com' with 'adminpassword' for admin access.",
         variant: "destructive",
       });
       return false;
@@ -105,7 +126,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           <DialogHeader>
             <DialogTitle>Login Required</DialogTitle>
             <DialogDescription>
-              Please login to continue with your order.
+              Please login to continue. Use admin credentials for admin access.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -128,7 +149,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 onChange={(e) => setPassword(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                For demo: use any email with password "password"
+                For demo: Use any email with password "password" or "admin@kamuthanga-farm.com" with "adminpassword" for admin access.
               </p>
             </div>
           </div>
