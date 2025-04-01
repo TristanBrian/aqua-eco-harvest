@@ -8,13 +8,17 @@ import TaskManagement from "@/components/admin/TaskManagement";
 import AdminSettings from "@/components/admin/AdminSettings";
 import ServicesManagement from "@/components/admin/ServicesManagement";
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, FileText, Calendar, Award, Printer, Share2 } from "lucide-react";
+import { Users, FileText, Calendar, Award, Printer, Share2, Shield, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import AdminHRControl from "@/components/admin/AdminHRControl";
+import { useAuth } from "@/contexts/AuthContext";
 
 const HRPage = () => {
   const [activeTab, setActiveTab] = useState("employees");
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   
   const handlePrintReport = () => {
     toast({
@@ -28,7 +32,14 @@ const HRPage = () => {
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">HR Management</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold text-gray-900">HR Management</h1>
+            {isAdmin && (
+              <span className="bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded-full border border-amber-200">
+                Admin Access
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <Button onClick={handlePrintReport} className="flex items-center gap-2">
               <Printer className="h-4 w-4" />
@@ -38,6 +49,12 @@ const HRPage = () => {
               <Button variant="outline" onClick={() => document.getElementById('create-invoice-btn')?.click()} className="flex items-center gap-2">
                 <Share2 className="h-4 w-4" />
                 Share Invoices
+              </Button>
+            )}
+            {isAdmin && (
+              <Button variant="outline" className="flex items-center gap-2" onClick={() => setActiveTab("admin-controls")}>
+                <Shield className="h-4 w-4" />
+                Admin Controls
               </Button>
             )}
           </div>
@@ -103,6 +120,8 @@ const HRPage = () => {
             <TabsTrigger value="performance">Performance</TabsTrigger>
             <TabsTrigger value="inquiries">Inquiries</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
+            {isAdmin && <TabsTrigger value="admin-controls">Admin Controls</TabsTrigger>}
+            {isAdmin && <TabsTrigger value="add-product">Add Products</TabsTrigger>}
           </TabsList>
           
           <TabsContent value="employees">
@@ -184,6 +203,18 @@ const HRPage = () => {
           <TabsContent value="settings">
             <AdminSettings />
           </TabsContent>
+          
+          {isAdmin && (
+            <TabsContent value="admin-controls">
+              <AdminHRControl />
+            </TabsContent>
+          )}
+          
+          {isAdmin && (
+            <TabsContent value="add-product">
+              <AddProductForm />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </AdminLayout>

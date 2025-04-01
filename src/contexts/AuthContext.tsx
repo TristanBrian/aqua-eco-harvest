@@ -13,6 +13,8 @@ interface AuthContextType {
   logout: () => void;
   showLoginModal: () => void;
   LoginModal: React.FC;
+  checkAdminRights: () => boolean;
+  checkHRAccess: () => boolean;
 }
 
 interface User {
@@ -20,6 +22,7 @@ interface User {
   name: string;
   email: string;
   role: string;
+  permissions?: string[];
 }
 
 // Create the context with a default value
@@ -50,7 +53,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         id: "admin1",
         name: "Admin User",
         email: email,
-        role: "admin"
+        role: "admin",
+        permissions: ["all", "hr_manage", "product_edit", "user_manage"]
       };
       
       setUser(adminUser);
@@ -59,7 +63,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       toast({
         title: "Admin Login Successful",
-        description: `Welcome back, Admin!`,
+        description: `Welcome back, Admin! You have full access to the system.`,
+      });
+      
+      return true;
+    }
+    
+    // HR manager login
+    else if (email === "hr@kamuthanga-farm.com" && password === "hrpassword") {
+      const hrUser: User = {
+        id: "hr1",
+        name: "HR Manager",
+        email: email,
+        role: "hr",
+        permissions: ["hr_view", "hr_edit", "employee_manage"]
+      };
+      
+      setUser(hrUser);
+      setIsLoggedIn(true);
+      setShowModal(false);
+      
+      toast({
+        title: "HR Login Successful",
+        description: `Welcome back, HR Manager!`,
       });
       
       return true;
@@ -71,7 +97,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         id: "1",
         name: email.split('@')[0],
         email: email,
-        role: "customer"
+        role: "customer",
+        permissions: ["view_products", "place_orders"]
       };
       
       setUser(userData);
@@ -106,6 +133,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const showLoginModal = () => {
     setShowModal(true);
+  };
+
+  // Check if user has admin rights
+  const checkAdminRights = () => {
+    return user?.role === "admin";
+  };
+  
+  // Check if user has HR access
+  const checkHRAccess = () => {
+    return user?.role === "admin" || user?.role === "hr";
   };
 
   // Login Modal Component
@@ -148,9 +185,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground">
-                For demo: Use any email with password "password" or "admin@kamuthanga-farm.com" with "adminpassword" for admin access.
-              </p>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p>For demo use:</p>
+                <ul className="list-disc list-inside pl-2">
+                  <li><strong>Admin:</strong> admin@kamuthanga-farm.com / adminpassword</li>
+                  <li><strong>HR Manager:</strong> hr@kamuthanga-farm.com / hrpassword</li>
+                  <li><strong>Customer:</strong> Any email with password "password"</li>
+                </ul>
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -171,7 +213,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     logout,
     showLoginModal,
-    LoginModal
+    LoginModal,
+    checkAdminRights,
+    checkHRAccess
   };
 
   return (
