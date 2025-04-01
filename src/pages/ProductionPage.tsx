@@ -1,12 +1,10 @@
-
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line } from 'recharts';
-import { Fish, Drop, Thermometer, RotateCw } from "lucide-react";
+import { Fish, Droplets, Thermometer, RotateCw } from "lucide-react";
 
-// Mock data for production
 const productionData = [
   { month: 'Jan', tilapia: 420, catfish: 320 },
   { month: 'Feb', tilapia: 460, catfish: 340 },
@@ -60,7 +58,7 @@ const ProductionPage = () => {
           <Card className="bg-cyan-50 border-cyan-200">
             <CardContent className="p-6 flex items-center space-x-4">
               <div className="bg-cyan-100 p-3 rounded-full">
-                <Drop className="h-6 w-6 text-cyan-700" />
+                <Droplets className="h-6 w-6 text-cyan-700" />
               </div>
               <div>
                 <p className="text-sm font-medium text-cyan-700">Water Quality</p>
