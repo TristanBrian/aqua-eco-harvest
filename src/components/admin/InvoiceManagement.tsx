@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Table, 
@@ -25,7 +24,8 @@ import {
   Download, 
   Printer,
   Eye,
-  Calendar
+  Calendar as CalendarIcon,
+  Trash2
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -35,6 +35,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
 
 // Mock invoice data
 const initialInvoices = [
@@ -125,13 +126,11 @@ const InvoiceManagement = () => {
   };
 
   const handleCreateInvoice = () => {
-    // Generate a new invoice ID
     const lastInvoiceNumber = parseInt(invoices[invoices.length - 1].id.split("-")[2]);
     const newInvoiceNumber = `INV-2024-${(lastInvoiceNumber + 1).toString().padStart(3, '0')}`;
     
     const invoiceTotal = calculateTotal();
     
-    // Create the new invoice
     const invoice = {
       id: newInvoiceNumber,
       date: format(date, "MMM dd, yyyy"),
@@ -140,16 +139,13 @@ const InvoiceManagement = () => {
       status: newInvoice.status
     };
     
-    // Add it to the list
     setInvoices([...invoices, invoice]);
     
-    // Show success message
     toast({
       title: "Invoice Created",
       description: `Invoice ${newInvoiceNumber} has been created successfully.`
     });
     
-    // Reset the form
     setNewInvoice({
       client: "",
       amount: "",
@@ -274,7 +270,6 @@ const InvoiceManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Create Invoice Dialog */}
       <Dialog open={isCreateInvoiceOpen} onOpenChange={setIsCreateInvoiceOpen}>
         <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
@@ -309,7 +304,7 @@ const InvoiceManagement = () => {
                         !date && "text-muted-foreground"
                       )}
                     >
-                      <Calendar className="mr-2 h-4 w-4" />
+                      <CalendarIcon className="mr-2 h-4 w-4" />
                       {date ? format(date, "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
@@ -317,8 +312,9 @@ const InvoiceManagement = () => {
                     <Calendar
                       mode="single"
                       selected={date}
-                      onSelect={(selectedDate) => selectedDate && setDate(selectedDate)}
+                      onSelect={(selectedDate: Date | undefined) => selectedDate && setDate(selectedDate)}
                       initialFocus
+                      className={cn("p-3 pointer-events-auto")}
                     />
                   </PopoverContent>
                 </Popover>
