@@ -8,7 +8,7 @@ import TaskManagement from "@/components/admin/TaskManagement";
 import AdminSettings from "@/components/admin/AdminSettings";
 import ServicesManagement from "@/components/admin/ServicesManagement";
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, FileText, Calendar, Award, Printer } from "lucide-react";
+import { Users, FileText, Calendar, Award, Printer, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -29,10 +29,18 @@ const HRPage = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">HR Management</h1>
-          <Button onClick={handlePrintReport} className="flex items-center gap-2">
-            <Printer className="h-4 w-4" />
-            Print Report
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={handlePrintReport} className="flex items-center gap-2">
+              <Printer className="h-4 w-4" />
+              Print Report
+            </Button>
+            {activeTab === "invoices" && (
+              <Button variant="outline" onClick={() => document.getElementById('create-invoice-btn')?.click()} className="flex items-center gap-2">
+                <Share2 className="h-4 w-4" />
+                Share Invoices
+              </Button>
+            )}
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -160,6 +168,10 @@ const HRPage = () => {
                         <div className="space-x-2">
                           <Button variant="outline" size="sm">Respond</Button>
                           <Button variant="outline" size="sm">Mark Resolved</Button>
+                          <Button variant="outline" size="sm">
+                            <Share2 className="h-4 w-4" />
+                            Share
+                          </Button>
                         </div>
                       </div>
                     </div>

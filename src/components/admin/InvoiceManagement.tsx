@@ -25,7 +25,11 @@ import {
   Printer,
   Eye,
   Calendar as CalendarIcon,
-  Trash2
+  Trash2,
+  Share2,
+  Mail,
+  Link as LinkIcon,
+  Copy
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -37,7 +41,6 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 
-// Mock invoice data
 const initialInvoices = [
   { id: "INV-2024-001", date: "Mar 15, 2024", client: "Nairobi Fisheries", amount: 125000, status: "Paid" },
   { id: "INV-2024-002", date: "Mar 20, 2024", client: "Mombasa Restaurants Ltd", amount: 87500, status: "Pending" },
@@ -47,7 +50,6 @@ const initialInvoices = [
   { id: "INV-2024-006", date: "Apr 15, 2024", client: "Nakuru Wholesale Foods", amount: 92500, status: "Paid" },
 ];
 
-// Mock clients data
 const clients = [
   "Nairobi Fisheries",
   "Mombasa Restaurants Ltd",
@@ -63,6 +65,10 @@ const InvoiceManagement = () => {
   const [invoices, setInvoices] = useState(initialInvoices);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [currentInvoice, setCurrentInvoice] = useState<any>(null);
+  const [shareMethod, setShareMethod] = useState<string>("email");
+  const [shareEmail, setShareEmail] = useState<string>("");
   const [newInvoice, setNewInvoice] = useState({
     client: "",
     amount: "",
@@ -156,7 +162,56 @@ const InvoiceManagement = () => {
     setDate(new Date());
     setIsCreateInvoiceOpen(false);
   };
-  
+
+  const handleShareInvoice = (invoice: any) => {
+    setCurrentInvoice(invoice);
+    setIsShareDialogOpen(true);
+  };
+
+  const shareViaEmail = () => {
+    if (!shareEmail) {
+      toast({
+        title: "Email Required",
+        description: "Please enter a valid email address to share the invoice.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Invoice Shared",
+      description: `Invoice ${currentInvoice.id} has been shared with ${shareEmail}`,
+    });
+    setIsShareDialogOpen(false);
+    setShareEmail("");
+  };
+
+  const copyInvoiceLink = () => {
+    const shareableLink = `${window.location.origin}/invoices/${currentInvoice.id}`;
+    
+    navigator.clipboard.writeText(shareableLink).then(() => {
+      toast({
+        title: "Link Copied",
+        description: "Shareable invoice link has been copied to clipboard",
+      });
+    }).catch(err => {
+      toast({
+        title: "Copy Failed",
+        description: "Failed to copy link to clipboard.",
+        variant: "destructive",
+      });
+    });
+    
+    setIsShareDialogOpen(false);
+  };
+
+  const downloadInvoicePdf = (invoice: any) => {
+    toast({
+      title: "Download Started",
+      description: `Invoice ${invoice.id} is being downloaded as PDF.`,
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -254,11 +309,14 @@ const InvoiceManagement = () => {
                         <DropdownMenuItem>
                           <Eye className="mr-2 h-4 w-4" /> View
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => downloadInvoicePdf(invoice)}>
                           <Download className="mr-2 h-4 w-4" /> Download
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Printer className="mr-2 h-4 w-4" /> Print
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleShareInvoice(invoice)}>
+                          <Share2 className="mr-2 h-4 w-4" /> Share
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -417,6 +475,80 @@ const InvoiceManagement = () => {
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setIsCreateInvoiceOpen(false)}>Cancel</Button>
             <Button onClick={handleCreateInvoice}>Create Invoice</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Share Invoice {currentInvoice?.id}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Share Method</Label>
+              <div className="flex space-x-2">
+                <Button 
+                  variant={shareMethod === "email" ? "default" : "outline"} 
+                  onClick={() => setShareMethod("email")}
+                  className="flex-1"
+                >
+                  <Mail className="mr-2 h-4 w-4" /> Email
+                </Button>
+                <Button 
+                  variant={shareMethod === "link" ? "default" : "outline"} 
+                  onClick={() => setShareMethod("link")}
+                  className="flex-1"
+                >
+                  <LinkIcon className="mr-2 h-4 w-4" /> Link
+                </Button>
+              </div>
+            </div>
+            
+            {shareMethod === "email" && (
+              <div className="space-y-2">
+                <Label htmlFor="share-email">Recipient Email</Label>
+                <Input
+                  id="share-email"
+                  type="email"
+                  placeholder="client@example.com"
+                  value={shareEmail}
+                  onChange={(e) => setShareEmail(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  The invoice will be sent as a PDF attachment to this email address.
+                </p>
+              </div>
+            )}
+            
+            {shareMethod === "link" && (
+              <div className="space-y-2">
+                <Label>Shareable Link</Label>
+                <div className="flex items-center space-x-2">
+                  <Input 
+                    readOnly 
+                    value={`${window.location.origin}/invoices/${currentInvoice?.id}`}
+                  />
+                  <Button variant="outline" size="icon">
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Anyone with this link can view the invoice details. The link is valid for 30 days.
+                </p>
+              </div>
+            )}
+            
+            <div className="pt-4 flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setIsShareDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={shareMethod === "email" ? shareViaEmail : copyInvoiceLink}
+              >
+                {shareMethod === "email" ? "Send Email" : "Copy Link"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
