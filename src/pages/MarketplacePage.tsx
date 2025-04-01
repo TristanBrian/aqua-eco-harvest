@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Package, CreditCard, Truck, Minus, Plus, Trash2, Info } from "lucide-react";
+import { ShoppingCart, Package, CreditCard, Truck, Minus, Plus, Trash2, Info, Phone, ArrowRight, CheckCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 interface CartItem {
   id: number;
@@ -52,6 +54,12 @@ const MarketplacePage = () => {
     notes: ""
   });
 
+  const [paymentMethod, setPaymentMethod] = useState("mpesa");
+  const [mpesaNumber, setMpesaNumber] = useState("");
+  const [showMpesaDialog, setShowMpesaDialog] = useState(false);
+  const [mpesaCode, setMpesaCode] = useState("");
+  const [orderComplete, setOrderComplete] = useState(false);
+
   const updateQuantity = (id: number, change: number) => {
     setCart(prevCart => prevCart.map(item => {
       if (item.id === id) {
@@ -83,6 +91,63 @@ const MarketplacePage = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handlePaymentMethodChange = (value: string) => {
+    setPaymentMethod(value);
+  };
+
+  const validateMpesaNumber = (number: string) => {
+    // Simple validation for Kenyan phone numbers
+    const kenyanRegex = /^(?:254|\+254|0)?(7[0-9]{8})$/;
+    return kenyanRegex.test(number);
+  };
+
+  const processMpesaPayment = () => {
+    if (!validateMpesaNumber(mpesaNumber)) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Please enter a valid Kenyan phone number.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+
+    setShowMpesaDialog(true);
+  };
+
+  const verifyMpesaPayment = () => {
+    if (!mpesaCode || mpesaCode.length < 5) {
+      toast({
+        title: "Invalid Code",
+        description: "Please enter a valid M-Pesa transaction code.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    
+    // In a real app, you would verify this code with your backend
+    setShowMpesaDialog(false);
+    setOrderComplete(true);
+    
+    // Send notification to HR
+    notifyHR();
+  };
+
+  const notifyHR = () => {
+    // In a real app, this would make an API call to your backend
+    // to notify HR about the new order
+    
+    console.log("HR notification sent for order");
+    
+    // Show success toast
+    toast({
+      title: "HR Notified",
+      description: "Order has been sent to HR for processing.",
+      duration: 5000,
+    });
+  };
+
   const handleCheckout = () => {
     if (cart.length === 0) {
       toast({
@@ -105,13 +170,26 @@ const MarketplacePage = () => {
       return;
     }
 
-    toast({
-      title: "Order Placed Successfully!",
-      description: "Your order has been received. We'll contact you shortly to confirm.",
-      duration: 5000,
-    });
+    if (paymentMethod === "mpesa") {
+      if (!mpesaNumber) {
+        toast({
+          title: "M-Pesa Number Required",
+          description: "Please enter your M-Pesa phone number to proceed.",
+          variant: "destructive",
+          duration: 3000,
+        });
+        return;
+      }
+      processMpesaPayment();
+    } else {
+      // Handle other payment methods
+      setOrderComplete(true);
+      notifyHR();
+    }
+  };
 
-    // Reset form and cart after successful order
+  const resetOrder = () => {
+    // Reset all states for a new order
     setFormData({
       firstName: "",
       lastName: "",
@@ -123,11 +201,69 @@ const MarketplacePage = () => {
       notes: ""
     });
     setCart([]);
+    setMpesaNumber("");
+    setMpesaCode("");
+    setOrderComplete(false);
+    setPaymentMethod("mpesa");
   };
 
   const subtotal = calculateSubtotal();
   const shipping = subtotal > 10000 ? 0 : 500;
   const total = subtotal + shipping;
+
+  // If order is complete, show success screen
+  if (orderComplete) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-white to-aqua-50">
+        <Navbar />
+        
+        <section className="pt-32 pb-16">
+          <div className="container mx-auto px-4 max-w-3xl">
+            <div className="bg-white shadow-md rounded-xl p-8 text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="h-10 w-10 text-green-600" />
+              </div>
+              <h1 className="text-3xl font-bold mb-4 text-green-600">Order Successful!</h1>
+              <p className="mb-6 text-gray-600">
+                Your order has been placed successfully. The HR department has been notified and will process your order shortly.
+              </p>
+              
+              <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Order Total:</span>
+                    <span className="font-bold">KSh {total.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Payment Method:</span>
+                    <span>{paymentMethod === "mpesa" ? "M-Pesa" : "Cash On Delivery"}</span>
+                  </div>
+                  {paymentMethod === "mpesa" && mpesaCode && (
+                    <div className="flex justify-between">
+                      <span>Transaction Code:</span>
+                      <span className="font-bold">{mpesaCode}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <Button className="w-full" onClick={resetOrder}>
+                  Place Another Order
+                </Button>
+                <Button variant="outline" asChild>
+                  <a href="/products">Browse More Products</a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-aqua-50">
@@ -337,10 +473,63 @@ const MarketplacePage = () => {
                       />
                     </div>
                     
+                    <div className="border-t pt-4 mt-2">
+                      <h3 className="text-lg font-medium mb-4">Payment Method</h3>
+                      <RadioGroup 
+                        value={paymentMethod} 
+                        onValueChange={handlePaymentMethodChange}
+                        className="space-y-4"
+                      >
+                        <div className="flex items-center space-x-2 border p-4 rounded-md">
+                          <RadioGroupItem value="mpesa" id="mpesa" />
+                          <Label htmlFor="mpesa" className="flex items-center">
+                            <Phone className="h-5 w-5 text-green-600 mr-2" />
+                            M-Pesa
+                          </Label>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 border p-4 rounded-md">
+                          <RadioGroupItem value="cod" id="cod" />
+                          <Label htmlFor="cod" className="flex items-center">
+                            <CreditCard className="h-5 w-5 text-blue-600 mr-2" />
+                            Cash On Delivery
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    
+                    {paymentMethod === "mpesa" && (
+                      <div className="bg-green-50 p-4 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium text-green-800">M-Pesa Payment Details</p>
+                            <p className="text-sm text-green-700 mt-1">Paybill Number: <span className="font-bold">555123</span></p>
+                            <p className="text-sm text-green-700">Account Number: <span className="font-bold">FISH{Math.floor(1000 + Math.random() * 9000)}</span></p>
+                          </div>
+                          <div className="bg-white p-2 rounded-md">
+                            <Phone className="h-8 w-8 text-green-600" />
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4">
+                          <Label htmlFor="mpesaNumber" className="text-green-800">Your M-Pesa Phone Number *</Label>
+                          <Input 
+                            id="mpesaNumber" 
+                            value={mpesaNumber} 
+                            onChange={(e) => setMpesaNumber(e.target.value)} 
+                            placeholder="e.g. 0712345678 or +254712345678" 
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="bg-aqua-50 p-4 rounded-lg flex items-start">
                       <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5 mr-2" />
                       <p className="text-sm text-slate-700">
-                        Payment will be processed upon delivery. We accept M-Pesa, cash, and bank transfers.
+                        {paymentMethod === "mpesa" 
+                          ? "Complete your payment through M-Pesa and enter the transaction code during checkout."
+                          : "Payment will be processed upon delivery. We accept cash and mobile payments."}
                       </p>
                     </div>
                     
@@ -440,6 +629,47 @@ const MarketplacePage = () => {
           </div>
         </div>
       </section>
+      
+      {/* M-Pesa Payment Confirmation Dialog */}
+      <Dialog open={showMpesaDialog} onOpenChange={setShowMpesaDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Confirm M-Pesa Payment</DialogTitle>
+            <DialogDescription>
+              Enter the M-Pesa transaction code sent to your phone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="transaction-code" className="text-green-700">Transaction Code</Label>
+              <Input 
+                id="transaction-code" 
+                value={mpesaCode} 
+                onChange={(e) => setMpesaCode(e.target.value)} 
+                placeholder="e.g. QK7HITSNX2" 
+                className="uppercase"
+              />
+            </div>
+            <div className="bg-green-50 p-3 rounded-md text-sm text-green-800">
+              <p>Follow these steps:</p>
+              <ol className="list-decimal pl-5 mt-2 space-y-1">
+                <li>Open M-Pesa on your phone</li>
+                <li>Select Lipa na M-Pesa</li>
+                <li>Select Pay Bill</li>
+                <li>Enter Business Number: <span className="font-bold">555123</span></li>
+                <li>Enter Account Number: <span className="font-bold">FISH{Math.floor(1000 + Math.random() * 9000)}</span></li>
+                <li>Enter Amount: <span className="font-bold">KSh {total.toLocaleString()}</span></li>
+                <li>Enter your M-Pesa PIN and confirm</li>
+                <li>Enter the transaction code received via SMS</li>
+              </ol>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMpesaDialog(false)}>Cancel</Button>
+            <Button onClick={verifyMpesaPayment}>Verify Payment</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       <Footer />
     </div>
