@@ -1,0 +1,65 @@
+
+@media print {
+  /* Hide elements not needed for printing */
+  nav,
+  .print-hide,
+  button:not(.print-show),
+  .tabs-list,
+  footer {
+    display: none !important;
+  }
+
+  /* Ensure the content is properly displayed */
+  body {
+    background-color: white;
+    font-size: 12pt;
+    color: black;
+  }
+
+  /* Add page breaks before main sections */
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  /* Avoid page breaks inside important elements */
+  tr, 
+  .card, 
+  .no-break {
+    page-break-inside: avoid;
+  }
+
+  /* Expand all content to full width */
+  .container,
+  main,
+  .content-area {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Make sure charts and graphs are visible */
+  .recharts-surface {
+    height: auto !important;
+  }
+
+  /* Add a title for printed pages */
+  .print-title {
+    display: block !important;
+    font-size: 24pt;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  /* Show URL for links when printed */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 90%;
+  }
+
+  /* Custom header and footer for printed pages */
+  @page {
+    margin: 2cm;
+  }
+}

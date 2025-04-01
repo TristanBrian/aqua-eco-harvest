@@ -6,16 +6,34 @@ import EmployeeManagement from "@/components/admin/EmployeeManagement";
 import InvoiceManagement from "@/components/admin/InvoiceManagement";
 import TaskManagement from "@/components/admin/TaskManagement";
 import AdminSettings from "@/components/admin/AdminSettings";
+import ServicesManagement from "@/components/admin/ServicesManagement";
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, FileText, Calendar, Award } from "lucide-react";
+import { Users, FileText, Calendar, Award, Printer } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 
 const HRPage = () => {
   const [activeTab, setActiveTab] = useState("employees");
+  const { toast } = useToast();
+  
+  const handlePrintReport = () => {
+    toast({
+      title: "Printing report...",
+      description: "Your report is being sent to the printer."
+    });
+    window.print();
+  };
   
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">HR Management</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900">HR Management</h1>
+          <Button onClick={handlePrintReport} className="flex items-center gap-2">
+            <Printer className="h-4 w-4" />
+            Print Report
+          </Button>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="bg-blue-50 border-blue-200">
@@ -70,15 +88,21 @@ const HRPage = () => {
         <Tabs defaultValue="employees" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
             <TabsTrigger value="employees">Employees</TabsTrigger>
+            <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="invoices">Invoices & Payroll</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="inquiries">Inquiries</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
           
           <TabsContent value="employees">
             <EmployeeManagement />
+          </TabsContent>
+          
+          <TabsContent value="services">
+            <ServicesManagement />
           </TabsContent>
           
           <TabsContent value="invoices">
@@ -100,6 +124,48 @@ const HRPage = () => {
             <div className="p-10 text-center bg-slate-50 rounded-lg border border-slate-200">
               <h3 className="text-xl font-medium text-slate-600">Performance Management</h3>
               <p className="text-slate-500 mt-2">Evaluate employee performance, set goals, and track progress.</p>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="inquiries">
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Customer Inquiries</h2>
+                <Button onClick={() => window.print()} className="flex items-center gap-2">
+                  <Printer className="h-4 w-4" />
+                  Print Inquiries
+                </Button>
+              </div>
+              <Card>
+                <div className="p-6 space-y-4">
+                  {[
+                    {id: 1, name: "James Mwangi", email: "james@example.com", subject: "Fish Quality", date: "2023-09-20", status: "Pending"},
+                    {id: 2, name: "Sarah Kamau", email: "sarah@example.com", subject: "Bulk Order", date: "2023-09-18", status: "Resolved"},
+                    {id: 3, name: "Michael Omondi", email: "michael@example.com", subject: "Delivery Schedule", date: "2023-09-15", status: "In Progress"}
+                  ].map(inquiry => (
+                    <div key={inquiry.id} className="border rounded-md p-4 hover:bg-slate-50">
+                      <div className="flex justify-between">
+                        <h3 className="font-medium">{inquiry.subject}</h3>
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          inquiry.status === "Pending" ? "bg-amber-100 text-amber-700" :
+                          inquiry.status === "Resolved" ? "bg-green-100 text-green-700" :
+                          "bg-blue-100 text-blue-700"
+                        }`}>
+                          {inquiry.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600">From: {inquiry.name} ({inquiry.email})</p>
+                      <div className="flex justify-between mt-2">
+                        <span className="text-xs text-gray-500">{inquiry.date}</span>
+                        <div className="space-x-2">
+                          <Button variant="outline" size="sm">Respond</Button>
+                          <Button variant="outline" size="sm">Mark Resolved</Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
             </div>
           </TabsContent>
           

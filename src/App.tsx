@@ -16,6 +16,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import HRPage from "./pages/HRPage";
 import ProductionPage from "./pages/ProductionPage";
 import NotFound from "./pages/NotFound";
+import "./styles/print.css";
 
 const queryClient = new QueryClient();
 
