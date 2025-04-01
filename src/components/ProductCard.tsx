@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Star, ArrowRight, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 
 interface ProductCardProps {
@@ -24,6 +24,7 @@ interface ProductCardProps {
 const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const navigate = useNavigate();
   
   return (
     <>
@@ -100,13 +101,17 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
             
             <div className="flex justify-between items-center pt-3 border-t border-slate-100">
               <span className="font-bold text-primary text-lg">{product.price}</span>
-              <Link 
-                to={`/products/${product.id}`} 
-                className="text-sm font-medium text-slate-600 flex items-center hover:text-primary transition-colors"
-                onClick={(e) => e.stopPropagation()}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="p-0 h-auto font-medium text-slate-600 flex items-center hover:text-primary hover:bg-transparent"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/products/${product.id}`);
+                }}
               >
                 Details <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -166,10 +171,15 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                     <ShoppingCart className="h-4 w-4 mr-2" />
                     Add to Cart
                   </Button>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link to={`/products/${product.id}`}>
-                      View Details <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      setIsDialogOpen(false);
+                      navigate(`/products/${product.id}`);
+                    }}
+                  >
+                    View Details <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
               </div>
