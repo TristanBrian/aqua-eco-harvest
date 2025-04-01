@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import AdminHRControl from "@/components/admin/AdminHRControl";
 import { useAuth } from "@/contexts/AuthContext";
+import AddProductForm from "@/components/admin/AddProductForm";
 
 const HRPage = () => {
   const [activeTab, setActiveTab] = useState("employees");
