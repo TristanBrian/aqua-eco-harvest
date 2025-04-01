@@ -12,6 +12,7 @@ import { ShoppingCart, Package, CreditCard, Truck, Minus, Plus, Trash2, Info, Ph
 import { useToast } from "@/components/ui/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CartItem {
   id: number;
@@ -24,6 +25,8 @@ interface CartItem {
 
 const MarketplacePage = () => {
   const { toast } = useToast();
+  const { isLoggedIn, showLoginModal } = useAuth();
+  
   const [cart, setCart] = useState<CartItem[]>([
     {
       id: 1,
@@ -59,6 +62,7 @@ const MarketplacePage = () => {
   const [showMpesaDialog, setShowMpesaDialog] = useState(false);
   const [mpesaCode, setMpesaCode] = useState("");
   const [orderComplete, setOrderComplete] = useState(false);
+  const [activeTab, setActiveTab] = useState("cart");
 
   const updateQuantity = (id: number, change: number) => {
     setCart(prevCart => prevCart.map(item => {
@@ -149,6 +153,18 @@ const MarketplacePage = () => {
   };
 
   const handleCheckout = () => {
+    // First check if user is logged in
+    if (!isLoggedIn) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to complete your order.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      showLoginModal();
+      return;
+    }
+    
     if (cart.length === 0) {
       toast({
         title: "Empty Cart",
@@ -188,6 +204,22 @@ const MarketplacePage = () => {
     }
   };
 
+  const handleProceedToCheckout = () => {
+    if (!isLoggedIn) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to proceed to checkout.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      showLoginModal();
+      return;
+    }
+    
+    // If logged in, proceed to checkout tab
+    setActiveTab("checkout");
+  };
+
   const resetOrder = () => {
     // Reset all states for a new order
     setFormData({
@@ -205,6 +237,7 @@ const MarketplacePage = () => {
     setMpesaCode("");
     setOrderComplete(false);
     setPaymentMethod("mpesa");
+    setActiveTab("cart");
   };
 
   const subtotal = calculateSubtotal();
@@ -281,7 +314,7 @@ const MarketplacePage = () => {
           
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <Tabs defaultValue="cart" className="w-full">
+              <Tabs defaultValue="cart" value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="cart">Shopping Cart</TabsTrigger>
                   <TabsTrigger value="checkout">Checkout</TabsTrigger>
@@ -363,6 +396,14 @@ const MarketplacePage = () => {
                           <span>Total</span>
                           <span>KSh {total.toLocaleString()}</span>
                         </div>
+                        
+                        <Button 
+                          className="w-full mt-6" 
+                          onClick={handleProceedToCheckout}
+                          disabled={cart.length === 0}
+                        >
+                          Proceed to Checkout
+                        </Button>
                       </div>
                     </div>
                   )}

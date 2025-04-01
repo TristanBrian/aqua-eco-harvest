@@ -1,9 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User, LogOut, ShoppingCart } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Logo component for the navbar
 const Logo = () => (
@@ -16,6 +17,7 @@ const Logo = () => (
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { isLoggedIn, user, logout, showLoginModal, LoginModal } = useAuth();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -66,12 +68,46 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
-            <Link 
-              to={adminLink.path}
-              className="text-foreground hover:text-primary font-medium transition-colors"
-            >
-              {adminLink.name}
+            
+            <Link to="/marketplace" className="flex items-center text-foreground hover:text-primary font-medium transition-colors">
+              <ShoppingCart className="mr-1 h-4 w-4" />
+              Marketplace
             </Link>
+            
+            {isLoggedIn && (
+              <Link 
+                to={adminLink.path}
+                className="text-foreground hover:text-primary font-medium transition-colors"
+              >
+                {adminLink.name}
+              </Link>
+            )}
+            
+            {isLoggedIn ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">
+                  {user?.name}
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={logout}
+                  className="text-foreground hover:text-red-500"
+                >
+                  <LogOut size={18} />
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={showLoginModal}
+                className="flex items-center gap-1 text-foreground hover:text-primary"
+              >
+                <User size={18} />
+                Login
+              </Button>
+            )}
           </div>
 
           {/* Mobile Navigation Button */}
@@ -101,17 +137,65 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
+              
               <Link 
-                to={adminLink.path}
-                className="text-foreground hover:text-primary font-medium transition-colors"
+                to="/marketplace" 
+                className="flex items-center text-foreground hover:text-primary font-medium transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                {adminLink.name}
+                <ShoppingCart className="mr-1 h-4 w-4" />
+                Marketplace
               </Link>
+              
+              {isLoggedIn && (
+                <Link 
+                  to={adminLink.path}
+                  className="text-foreground hover:text-primary font-medium transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {adminLink.name}
+                </Link>
+              )}
+              
+              {isLoggedIn ? (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">
+                    Signed in as {user?.name}
+                  </span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      logout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="text-red-500"
+                  >
+                    <LogOut size={18} className="mr-1" />
+                    Logout
+                  </Button>
+                </div>
+              ) : (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => {
+                    showLoginModal();
+                    setIsMenuOpen(false);
+                  }}
+                  className="flex items-center justify-center gap-1 w-full"
+                >
+                  <User size={18} />
+                  Login
+                </Button>
+              )}
             </div>
           </div>
         )}
       </div>
+      
+      {/* Login Modal */}
+      <LoginModal />
     </nav>
   );
 };
