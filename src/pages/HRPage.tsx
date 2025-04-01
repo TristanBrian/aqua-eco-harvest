@@ -4,6 +4,8 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmployeeManagement from "@/components/admin/EmployeeManagement";
 import InvoiceManagement from "@/components/admin/InvoiceManagement";
+import TaskManagement from "@/components/admin/TaskManagement";
+import AdminSettings from "@/components/admin/AdminSettings";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, FileText, Calendar, Award } from "lucide-react";
 
@@ -70,7 +72,9 @@ const HRPage = () => {
             <TabsTrigger value="employees">Employees</TabsTrigger>
             <TabsTrigger value="invoices">Invoices & Payroll</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
+            <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
           
           <TabsContent value="employees">
@@ -88,11 +92,19 @@ const HRPage = () => {
             </div>
           </TabsContent>
           
+          <TabsContent value="tasks">
+            <TaskManagement />
+          </TabsContent>
+          
           <TabsContent value="performance">
             <div className="p-10 text-center bg-slate-50 rounded-lg border border-slate-200">
               <h3 className="text-xl font-medium text-slate-600">Performance Management</h3>
               <p className="text-slate-500 mt-2">Evaluate employee performance, set goals, and track progress.</p>
             </div>
+          </TabsContent>
+          
+          <TabsContent value="settings">
+            <AdminSettings />
           </TabsContent>
         </Tabs>
       </div>

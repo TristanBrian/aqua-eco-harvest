@@ -24,11 +24,20 @@ import {
   FileText, 
   Download, 
   Printer,
-  Eye 
+  Eye,
+  Calendar
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 // Mock invoice data
-const invoices = [
+const initialInvoices = [
   { id: "INV-2024-001", date: "Mar 15, 2024", client: "Nairobi Fisheries", amount: 125000, status: "Paid" },
   { id: "INV-2024-002", date: "Mar 20, 2024", client: "Mombasa Restaurants Ltd", amount: 87500, status: "Pending" },
   { id: "INV-2024-003", date: "Mar 25, 2024", client: "Lake Victoria Exports", amount: 240000, status: "Paid" },
@@ -37,8 +46,31 @@ const invoices = [
   { id: "INV-2024-006", date: "Apr 15, 2024", client: "Nakuru Wholesale Foods", amount: 92500, status: "Paid" },
 ];
 
+// Mock clients data
+const clients = [
+  "Nairobi Fisheries",
+  "Mombasa Restaurants Ltd",
+  "Lake Victoria Exports",
+  "Nyeri Markets Association",
+  "Kisumu Fish Processors",
+  "Nakuru Wholesale Foods",
+  "Eldoret Fish Suppliers",
+  "Malindi Seafood Market",
+];
+
 const InvoiceManagement = () => {
+  const [invoices, setInvoices] = useState(initialInvoices);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false);
+  const [newInvoice, setNewInvoice] = useState({
+    client: "",
+    amount: "",
+    description: "",
+    status: "Pending",
+    items: [{ description: "", quantity: 1, unitPrice: 0 }]
+  });
+  const [date, setDate] = useState<Date>(new Date());
+  const { toast } = useToast();
   
   const filteredInvoices = invoices.filter(
     (invoice) => 
@@ -54,6 +86,80 @@ const InvoiceManagement = () => {
       minimumFractionDigits: 0
     }).format(amount);
   };
+
+  const addInvoiceItem = () => {
+    setNewInvoice({
+      ...newInvoice,
+      items: [
+        ...newInvoice.items,
+        { description: "", quantity: 1, unitPrice: 0 }
+      ]
+    });
+  };
+
+  const removeInvoiceItem = (index: number) => {
+    const updatedItems = [...newInvoice.items];
+    updatedItems.splice(index, 1);
+    setNewInvoice({
+      ...newInvoice,
+      items: updatedItems
+    });
+  };
+
+  const updateInvoiceItem = (index: number, field: string, value: string | number) => {
+    const updatedItems = [...newInvoice.items];
+    updatedItems[index] = {
+      ...updatedItems[index],
+      [field]: field === "quantity" || field === "unitPrice" ? Number(value) : value
+    };
+    setNewInvoice({
+      ...newInvoice,
+      items: updatedItems
+    });
+  };
+
+  const calculateTotal = () => {
+    return newInvoice.items.reduce((total, item) => {
+      return total + (item.quantity * item.unitPrice);
+    }, 0);
+  };
+
+  const handleCreateInvoice = () => {
+    // Generate a new invoice ID
+    const lastInvoiceNumber = parseInt(invoices[invoices.length - 1].id.split("-")[2]);
+    const newInvoiceNumber = `INV-2024-${(lastInvoiceNumber + 1).toString().padStart(3, '0')}`;
+    
+    const invoiceTotal = calculateTotal();
+    
+    // Create the new invoice
+    const invoice = {
+      id: newInvoiceNumber,
+      date: format(date, "MMM dd, yyyy"),
+      client: newInvoice.client,
+      amount: invoiceTotal,
+      status: newInvoice.status
+    };
+    
+    // Add it to the list
+    setInvoices([...invoices, invoice]);
+    
+    // Show success message
+    toast({
+      title: "Invoice Created",
+      description: `Invoice ${newInvoiceNumber} has been created successfully.`
+    });
+    
+    // Reset the form
+    setNewInvoice({
+      client: "",
+      amount: "",
+      description: "",
+      status: "Pending",
+      items: [{ description: "", quantity: 1, unitPrice: 0 }]
+    });
+    setDate(new Date());
+    setIsCreateInvoiceOpen(false);
+  };
   
   return (
     <div className="space-y-6">
@@ -67,7 +173,7 @@ const InvoiceManagement = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button>
+        <Button onClick={() => setIsCreateInvoiceOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Create Invoice
         </Button>
       </div>
@@ -167,6 +273,157 @@ const InvoiceManagement = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Create Invoice Dialog */}
+      <Dialog open={isCreateInvoiceOpen} onOpenChange={setIsCreateInvoiceOpen}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>Create New Invoice</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="client">Client</Label>
+                <Select 
+                  value={newInvoice.client} 
+                  onValueChange={(value) => setNewInvoice({...newInvoice, client: value})}
+                >
+                  <SelectTrigger id="client">
+                    <SelectValue placeholder="Select client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client} value={client}>{client}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="invoice-date">Invoice Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                      )}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {date ? format(date, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={(selectedDate) => selectedDate && setDate(selectedDate)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="invoice-status">Status</Label>
+              <Select 
+                value={newInvoice.status} 
+                onValueChange={(value) => setNewInvoice({...newInvoice, status: value})}
+              >
+                <SelectTrigger id="invoice-status">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Paid">Paid</SelectItem>
+                  <SelectItem value="Overdue">Overdue</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between mb-2">
+                <Label>Invoice Items</Label>
+                <Button type="button" size="sm" variant="outline" onClick={addInvoiceItem}>
+                  <Plus className="h-4 w-4 mr-1" /> Add Item
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                {newInvoice.items.map((item, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-2 items-end">
+                    <div className="col-span-6">
+                      <Label htmlFor={`item-desc-${index}`} className="text-xs">Description</Label>
+                      <Input
+                        id={`item-desc-${index}`}
+                        value={item.description}
+                        onChange={(e) => updateInvoiceItem(index, "description", e.target.value)}
+                        placeholder="Item description"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label htmlFor={`item-qty-${index}`} className="text-xs">Qty</Label>
+                      <Input
+                        id={`item-qty-${index}`}
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) => updateInvoiceItem(index, "quantity", e.target.value)}
+                      />
+                    </div>
+                    <div className="col-span-3">
+                      <Label htmlFor={`item-price-${index}`} className="text-xs">Unit Price (KES)</Label>
+                      <Input
+                        id={`item-price-${index}`}
+                        type="number"
+                        min="0"
+                        value={item.unitPrice}
+                        onChange={(e) => updateInvoiceItem(index, "unitPrice", e.target.value)}
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      {index > 0 && (
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => removeInvoiceItem(index)}
+                          className="h-9 w-9"
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <div className="text-right">
+                <p className="text-sm font-medium text-muted-foreground">Total:</p>
+                <p className="text-lg font-bold">{formatCurrency(calculateTotal())}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="invoice-notes">Notes</Label>
+              <Textarea
+                id="invoice-notes"
+                placeholder="Additional notes or payment instructions"
+                rows={3}
+                value={newInvoice.description}
+                onChange={(e) => setNewInvoice({...newInvoice, description: e.target.value})}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsCreateInvoiceOpen(false)}>Cancel</Button>
+            <Button onClick={handleCreateInvoice}>Create Invoice</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
