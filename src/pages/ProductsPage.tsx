@@ -1,9 +1,13 @@
-
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Filter, ArrowUpRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Filter, ArrowUpRight, Info, Star, Truck, ShoppingCart } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 const products = [
   {
@@ -81,8 +85,43 @@ const products = [
 ];
 
 const ProductsPage = () => {
+  const { toast } = useToast();
+  const [filter, setFilter] = useState("all");
+  const [sort, setSort] = useState("featured");
+
+  const handleAddToCart = (productName: string) => {
+    toast({
+      title: "Added to Cart",
+      description: `${productName} has been added to your cart.`,
+      duration: 3000,
+    });
+  };
+
+  const sortProducts = (products: any[]) => {
+    if (sort === "price-low") {
+      return [...products].sort((a, b) => {
+        const priceA = parseInt(a.price.replace(/[^0-9]/g, ''));
+        const priceB = parseInt(b.price.replace(/[^0-9]/g, ''));
+        return priceA - priceB;
+      });
+    } else if (sort === "price-high") {
+      return [...products].sort((a, b) => {
+        const priceA = parseInt(a.price.replace(/[^0-9]/g, ''));
+        const priceB = parseInt(b.price.replace(/[^0-9]/g, ''));
+        return priceB - priceA;
+      });
+    }
+    return products; // Default "featured" sorting
+  };
+
+  const filteredProducts = filter === "all" 
+    ? products 
+    : products.filter(p => p.category === filter);
+
+  const sortedProducts = sortProducts(filteredProducts);
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-white to-aqua-50">
       <Navbar />
       
       <section className="pt-32 pb-16">
@@ -91,71 +130,149 @@ const ProductsPage = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-aqua-950">Our Products</h1>
             <div className="w-24 h-1 bg-primary mx-auto mb-6"></div>
             <p className="text-lg text-slate-700">
-              Discover our premium range of sustainably farmed fish products.
+              Discover our premium range of sustainably farmed fish products, fresh from our eco-friendly Recirculating Aquaculture System.
             </p>
           </div>
           
-          <Tabs defaultValue="all" className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <TabsList>
-                <TabsTrigger value="all">All Products</TabsTrigger>
-                <TabsTrigger value="tilapia">Tilapia</TabsTrigger>
-                <TabsTrigger value="catfish">Catfish</TabsTrigger>
-                <TabsTrigger value="ornamental">Ornamental</TabsTrigger>
-                <TabsTrigger value="fingerlings">Fingerlings</TabsTrigger>
-              </TabsList>
+          <div className="flex flex-col lg:flex-row lg:items-start gap-8 mb-8">
+            <div className="lg:w-1/4 bg-white p-6 rounded-lg shadow-sm">
+              <h3 className="text-lg font-semibold mb-4 flex items-center">
+                <Filter className="h-5 w-5 mr-2 text-primary" />
+                Filter Products
+              </h3>
               
-              <div className="hidden md:flex items-center text-sm">
-                <Filter className="h-4 w-4 mr-2 text-slate-500" />
-                <span className="text-slate-500">Sort by: </span>
-                <select className="ml-2 bg-transparent border-none text-primary font-medium focus:ring-0 focus:outline-none cursor-pointer">
-                  <option>Featured</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <input 
+                    type="radio" 
+                    id="all" 
+                    name="filter" 
+                    className="mr-2" 
+                    checked={filter === "all"} 
+                    onChange={() => setFilter("all")} 
+                  />
+                  <label htmlFor="all" className="cursor-pointer">All Products</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="radio" 
+                    id="tilapia" 
+                    name="filter" 
+                    className="mr-2" 
+                    checked={filter === "tilapia"} 
+                    onChange={() => setFilter("tilapia")} 
+                  />
+                  <label htmlFor="tilapia" className="cursor-pointer">Tilapia</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="radio" 
+                    id="catfish" 
+                    name="filter" 
+                    className="mr-2" 
+                    checked={filter === "catfish"} 
+                    onChange={() => setFilter("catfish")} 
+                  />
+                  <label htmlFor="catfish" className="cursor-pointer">Catfish</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="radio" 
+                    id="ornamental" 
+                    name="filter" 
+                    className="mr-2" 
+                    checked={filter === "ornamental"} 
+                    onChange={() => setFilter("ornamental")} 
+                  />
+                  <label htmlFor="ornamental" className="cursor-pointer">Ornamental</label>
+                </div>
+                <div className="flex items-center">
+                  <input 
+                    type="radio" 
+                    id="fingerlings" 
+                    name="filter" 
+                    className="mr-2" 
+                    checked={filter === "fingerlings"} 
+                    onChange={() => setFilter("fingerlings")} 
+                  />
+                  <label htmlFor="fingerlings" className="cursor-pointer">Fingerlings</label>
+                </div>
+              </div>
+              
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold mb-4">Sort By</h3>
+                <select 
+                  className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                >
+                  <option value="featured">Featured</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
                 </select>
+              </div>
+              
+              <div className="mt-8 bg-aqua-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-2 flex items-center text-aqua-900">
+                  <Info className="h-5 w-5 mr-2 text-primary" />
+                  Why Choose Our Fish?
+                </h3>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-start">
+                    <div className="min-w-4 h-4 bg-primary/20 rounded-full flex items-center justify-center mt-1 mr-2">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    </div>
+                    <span>100% Sustainably farmed</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="min-w-4 h-4 bg-primary/20 rounded-full flex items-center justify-center mt-1 mr-2">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    </div>
+                    <span>No antibiotics or hormones</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="min-w-4 h-4 bg-primary/20 rounded-full flex items-center justify-center mt-1 mr-2">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    </div>
+                    <span>Eco-certified production</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="min-w-4 h-4 bg-primary/20 rounded-full flex items-center justify-center mt-1 mr-2">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    </div>
+                    <span>Farm-to-table freshness</span>
+                  </li>
+                </ul>
               </div>
             </div>
             
-            <TabsContent value="all">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+            <div className="lg:w-3/4">
+              <div className="mb-6 flex justify-between items-center">
+                <h2 className="text-2xl font-semibold text-aqua-900">
+                  {filter === "all" ? "All Products" : filter.charAt(0).toUpperCase() + filter.slice(1)}
+                  <span className="ml-2 text-sm font-normal text-slate-500">
+                    ({filteredProducts.length} products)
+                  </span>
+                </h2>
+                <Link to="/marketplace">
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <ShoppingCart className="h-4 w-4" />
+                    Go to Marketplace
+                  </Button>
+                </Link>
+              </div>
+              
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sortedProducts.map((product) => (
+                  <ProductCard 
+                    key={product.id} 
+                    product={product} 
+                    onAddToCart={handleAddToCart}
+                  />
                 ))}
               </div>
-            </TabsContent>
-            
-            <TabsContent value="tilapia">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {products.filter(p => p.category === 'tilapia').map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="catfish">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {products.filter(p => p.category === 'catfish').map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="ornamental">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {products.filter(p => p.category === 'ornamental').map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="fingerlings">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {products.filter(p => p.category === 'fingerlings').map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
           
           <div className="max-w-4xl mx-auto mt-16 bg-aqua-50 rounded-xl p-8">
             <h2 className="text-2xl font-semibold mb-4 text-aqua-900">Bulk Orders & Special Requests</h2>
@@ -165,8 +282,12 @@ const ProductsPage = () => {
             <p className="text-slate-700 mb-6">
               Contact our sales team at <span className="text-primary font-medium">sales@kamuthanga-farm.com</span> or call us at <span className="text-primary font-medium">+254 722 522169</span> to discuss your specific needs.
             </p>
-            <div className="bg-white p-4 rounded-lg text-slate-700">
-              <p className="font-medium">Note: Prices may vary slightly based on season and availability. Please contact us for the most current pricing.</p>
+            <div className="flex items-center gap-4 bg-white p-4 rounded-lg text-slate-700">
+              <Truck className="text-primary h-8 w-8 flex-shrink-0" />
+              <div>
+                <p className="font-medium">We deliver across Kenya</p>
+                <p className="text-sm text-slate-500">Free delivery for orders above KSh 10,000 within Nairobi</p>
+              </div>
             </div>
           </div>
         </div>
@@ -187,31 +308,38 @@ interface ProductCardProps {
     features: string[];
     price: string;
   };
+  onAddToCart: (productName: string) => void;
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
+const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group h-full flex flex-col">
       <div className="h-56 overflow-hidden relative">
         <img 
           src={product.image} 
           alt={product.name} 
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        <div className="absolute top-3 right-3 bg-white rounded-full px-3 py-1 text-xs font-medium text-slate-700">
-          {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
+        <div className="absolute top-3 right-3">
+          <Badge className="bg-white text-slate-700">
+            {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
+          </Badge>
         </div>
       </div>
-      <CardContent className="p-6">
-        <h3 className="text-xl font-semibold mb-2 text-aqua-900 flex items-center justify-between">
-          {product.name}
-          <span className="text-primary hover:text-primary/80 transition-colors cursor-pointer">
-            <ArrowUpRight className="h-5 w-5" />
-          </span>
-        </h3>
+      <CardContent className="p-6 flex flex-col flex-grow">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-xl font-semibold text-aqua-900">{product.name}</h3>
+          <div className="flex items-center">
+            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+            <Star className="h-4 w-4 text-yellow-500" />
+          </div>
+        </div>
         <p className="text-slate-600 mb-4 text-sm">{product.description}</p>
         
-        <div className="mb-4">
+        <div className="mb-4 flex-grow">
           <h4 className="text-sm font-medium text-slate-500 mb-2">Features:</h4>
           <ul className="grid grid-cols-2 gap-x-2 gap-y-1">
             {product.features.map((feature, idx) => (
@@ -225,7 +353,18 @@ const ProductCard = ({ product }: ProductCardProps) => {
         
         <div className="flex justify-between items-center pt-3 border-t border-slate-100">
           <span className="font-bold text-primary">{product.price}</span>
-          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">In Stock</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-white bg-green-500 px-2 py-1 rounded">In Stock</span>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="flex items-center gap-1"
+              onClick={() => onAddToCart(product.name)}
+            >
+              <ShoppingCart className="h-3 w-3" />
+              Add
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
